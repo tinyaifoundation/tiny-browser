@@ -1,0 +1,24 @@
+{
+  "name": "@tinybrowser/playground",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -p tsconfig.json --noEmit && vite build",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@mercuryworkshop/epoxy-transport": "3.0.1",
+    "@mercuryworkshop/scramjet": "2.0.67-alpha.2",
+    "@mercuryworkshop/scramjet-controller": "0.0.14",
+    "@tinybrowser/controller": "workspace:*",
+    "@tinybrowser/protocol": "workspace:*",
+    "@tinybrowser/runtime": "workspace:*",
+    "@tinybrowser/scramjet-adapter": "workspace:*"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.12",
+    "typescript": "^5.9.3",
+    "vite": "^7.1.7"
+  }
+}

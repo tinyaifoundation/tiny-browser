@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TinyBrowser playground</title>
+    <script src="/scramjet/scramjet.js"></script>
+    <script src="/controller/controller.api.js"></script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <header>
+        <h1>TinyBrowser</h1>
+        <form id="navigation-form">
+          <label for="url">URL</label>
+          <input id="url" type="url" value="http://127.0.0.1:5173/test-site/index.html" autocomplete="off" />
+          <button>Go</button>
+        </form>
+        <output id="status" aria-live="polite">Starting…</output>
+      </header>
+      <section class="workspace" aria-label="TinyBrowser laboratory">
+        <section class="pane" aria-labelledby="site-heading">
+          <h2 id="site-heading">Website</h2>
+          <div id="browser-view" class="browser-view"></div>
+        </section>
+        <section class="pane" aria-labelledby="tree-heading">
+          <div class="pane-heading"><h2 id="tree-heading">TinyTree</h2><button id="refresh-tree" type="button">Refresh</button></div>
+          <pre id="tree" tabindex="0">Waiting for the runtime…</pre>
+        </section>
+      </section>
+      <section class="actions" aria-label="Deterministic TinyBrowser actions">
+        <form id="click-form"><label>Node ID <input name="nodeId" type="number" min="1" required /></label><button>Click</button></form>
+        <form id="type-form"><label>Node ID <input name="nodeId" type="number" min="1" required /></label><label>Text <input name="text" required /></label><button>Type</button></form>
+        <form id="key-form"><label>Key <input name="key" value="Enter" required /></label><button>Press</button></form>
+      </section>
+    </main>
+    <script type="module" src="/src/app.ts"></script>
+  </body>
+</html>

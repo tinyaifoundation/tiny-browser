@@ -3,7 +3,8 @@
   "compilerOptions": {
     "lib": ["ES2022", "DOM"],
     "outDir": "dist",
-    "declaration": true
+    "declaration": true,
+    "rootDir": "src"
   },
   "include": ["src"]
 }

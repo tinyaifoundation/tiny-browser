@@ -1,4 +1,4 @@
-import type { TinyNode, TinySnapshot } from "@tinybrowser/protocol";
+import type { TinyNode, TinySnapshot } from "@tinyaifoundation/tiny-browser";
 import { NodeRegistry } from "./nodes";
 import { isVisible, rectFor } from "./visibility";
 

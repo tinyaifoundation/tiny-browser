@@ -1,9 +1,33 @@
-import type { BrowserAdapter, FrameAdapter } from "@tinybrowser/controller";
+import type { BrowserAdapter, FrameAdapter } from "./controller.js";
+
+export interface IframeBrowserAdapterOptions {
+  /** Same-origin path at which the host application exposes the relay. */
+  basePath?: string;
+}
+
+export function normalizeBasePath(value = ""): string {
+  if (value === "" || value === "/") return "";
+  if (
+    !/^\/[A-Za-z0-9._~/-]+$/.test(value) ||
+    value.includes("//") ||
+    value.split("/").some((segment) => segment === "." || segment === "..")
+  )
+    throw new Error("basePath must be a same-origin absolute path.");
+  return value.replace(/\/+$/, "");
+}
 
 /** A sandboxed, web-native frame backed by TinyBrowser's own URL gateway. */
 export class IframeBrowserAdapter implements BrowserAdapter {
+  private readonly basePath: string;
+
+  constructor(options: IframeBrowserAdapterOptions = {}) {
+    this.basePath = normalizeBasePath(options.basePath);
+  }
+
   async start(): Promise<void> {
-    const response = await fetch("/health");
+    const response = await fetch(`${this.basePath}/health`, {
+      credentials: "same-origin",
+    });
     if (!response.ok) throw new Error("TinyBrowser gateway is unavailable.");
   }
 
@@ -52,7 +76,7 @@ export class IframeBrowserAdapter implements BrowserAdapter {
             resolve();
           };
           window.addEventListener("message", onReady);
-          element.src = `/browse/${target.protocol.slice(0, -1)}/${target.host}${target.pathname}${target.search}${target.hash}`;
+          element.src = `${this.basePath}/browse/${target.protocol.slice(0, -1)}/${target.host}${target.pathname}${target.search}${target.hash}`;
         });
       },
       onRuntimeMessage: (listener) => {

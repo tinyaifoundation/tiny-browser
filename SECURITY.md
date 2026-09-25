@@ -1,7 +1,7 @@
 # Security policy
 
-Tiny Browser executes untrusted public pages inside a sandboxed iframe and fetches their assets through a local gateway. The gateway is intended for **single-user localhost development only**. It is not an authenticated public proxy or a safe place to handle sensitive browsing sessions.
+Tiny Browser fetches untrusted public pages through a developer-hosted relay and renders them in a sandboxed iframe in the visitor's browser. The hosted relay requires a server-held proxy secret and a trusted user ID on browsing and runtime routes. It must sit behind an authenticated same-origin application proxy. The local demo mode binds to `127.0.0.1` and remains single-user only.
 
-The gateway blocks private, loopback, link-local, and reserved network addresses; validates redirects; caps response size; and uses a validated DNS address for each connection. A security report should include the target URL, expected behavior, actual behavior, and a minimal reproduction. Please avoid including real credentials or private data.
+The relay blocks private and reserved addresses, validates redirects, pins the validated DNS address, caps responses, times out upstream requests, and applies process-local quotas. These controls do not replace application authentication, network isolation, shared rate limiting across replicas, HTTPS, or careful handling of untrusted target-page content. See the [deployment security checklist](docs/deployment.md#security-checklist).
 
-For a suspected vulnerability, use GitHub's private vulnerability reporting for this repository after publication. Do not open a public issue containing exploit details. For ordinary bugs or site compatibility problems, open a regular issue.
+Please use GitHub private vulnerability reporting for suspected security issues. Include a minimal reproduction and avoid real credentials or private data. Use a regular issue for ordinary bugs and site compatibility reports.

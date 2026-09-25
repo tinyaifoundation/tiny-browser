@@ -5,7 +5,7 @@ import type {
   TinyRuntimeMessage,
   TinyScrollOptions,
   TinySnapshot,
-} from "@tinybrowser/protocol";
+} from "./protocol.js";
 
 export interface FrameAdapter {
   element: HTMLIFrameElement;

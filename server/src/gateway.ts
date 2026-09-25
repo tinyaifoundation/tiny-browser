@@ -32,9 +32,11 @@ for (const [address, prefix] of [
 ] as const)
   blocked.addSubnet(address, prefix, "ipv6");
 
-export function targetFromPath(path: string): URL {
-  const match = /^\/browse\/(https?)\/([^/?#]+)(\/[^?#]*)?(\?[^#]*)?/.exec(
-    path,
+export function targetFromPath(path: string, basePath = ""): URL {
+  const browse = `${basePath}/browse/`;
+  if (!path.startsWith(browse)) throw new Error("Invalid relay path.");
+  const match = /^(https?)\/([^/?#]+)(\/[^?#]*)?(\?[^#]*)?$/.exec(
+    path.slice(browse.length),
   );
   if (!match) throw new Error("Expected /browse/https/example.com/path");
   const target = new URL(
@@ -44,8 +46,8 @@ export function targetFromPath(path: string): URL {
     throw new Error("Credentials in URLs are blocked.");
   return target;
 }
-export function proxyPath(target: URL): string {
-  return `/browse/${target.protocol.slice(0, -1)}/${target.host}${target.pathname}${target.search}${target.hash}`;
+export function proxyPath(target: URL, basePath = ""): string {
+  return `${basePath}/browse/${target.protocol.slice(0, -1)}/${target.host}${target.pathname}${target.search}${target.hash}`;
 }
 
 export async function safeAddress(
@@ -87,12 +89,44 @@ export interface UpstreamResponse {
   body: Buffer;
   finalUrl: URL;
 }
+type PinnedResponse = Omit<UpstreamResponse, "finalUrl">;
+export interface FetchDependencies {
+  resolveAddress?: typeof safeAddress;
+  requestPinned?: (
+    target: URL,
+    address: { address: string; family: 4 | 6 },
+  ) => Promise<PinnedResponse>;
+}
+
 export async function fetchTarget(
   target: URL,
   redirects = 0,
+  dependencies: FetchDependencies = {},
 ): Promise<UpstreamResponse> {
   if (redirects > 5) throw new Error("Too many redirects.");
-  const resolved = await safeAddress(target);
+  const resolved = await (dependencies.resolveAddress ?? safeAddress)(target);
+  const result = await (dependencies.requestPinned ?? requestPinned)(
+    target,
+    resolved,
+  );
+  if (result.body.length > 15_000_000)
+    throw new Error("Response exceeds the 15 MB limit.");
+  if (
+    [301, 302, 303, 307, 308].includes(result.status) &&
+    result.headers.location
+  )
+    return fetchTarget(
+      new URL(result.headers.location, target),
+      redirects + 1,
+      dependencies,
+    );
+  return { ...result, finalUrl: target };
+}
+
+async function requestPinned(
+  target: URL,
+  resolved: { address: string; family: 4 | 6 },
+): Promise<PinnedResponse> {
   const request = target.protocol === "https:" ? httpsRequest : httpRequest;
   const result = await new Promise<{
     status: number;
@@ -105,7 +139,7 @@ export async function fetchTarget(
         method: "GET",
         timeout: 12_000,
         headers: {
-          "user-agent": "TinyBrowser/0.1",
+          "user-agent": "TinyBrowser/0.2",
           accept: "*/*",
           "accept-encoding": "identity",
         },
@@ -115,6 +149,19 @@ export async function fetchTarget(
         },
       },
       (response) => {
+        if (
+          response.headers["content-encoding"] &&
+          response.headers["content-encoding"] !== "identity"
+        ) {
+          upstream.destroy(
+            new Error("Compressed upstream responses are unsupported."),
+          );
+          return;
+        }
+        if (Number(response.headers["content-length"] ?? 0) > 15_000_000) {
+          upstream.destroy(new Error("Response exceeds the 15 MB limit."));
+          return;
+        }
         const chunks: Buffer[] = [];
         let size = 0;
         response.on("data", (chunk: Buffer) => {
@@ -133,27 +180,27 @@ export async function fetchTarget(
         response.on("error", reject);
       },
     );
+    const deadline = setTimeout(
+      () => upstream.destroy(new Error("Upstream request timed out.")),
+      15_000,
+    );
+    upstream.on("close", () => clearTimeout(deadline));
     upstream.on("timeout", () =>
       upstream.destroy(new Error("Upstream request timed out.")),
     );
     upstream.on("error", reject);
     upstream.end();
   });
-  if (
-    [301, 302, 303, 307, 308].includes(result.status) &&
-    result.headers.location
-  )
-    return fetchTarget(new URL(result.headers.location, target), redirects + 1);
-  return { ...result, finalUrl: target };
+  return result;
 }
 
-function rewriteUrl(value: string, base: URL): string {
+function rewriteUrl(value: string, base: URL, basePath = ""): string {
   if (!value || /^(#|data:|blob:|javascript:|mailto:|tel:)/i.test(value))
     return value;
   try {
     const target = new URL(value.replace(/&amp;/g, "&"), base);
     return ["http:", "https:"].includes(target.protocol)
-      ? proxyPath(target)
+      ? proxyPath(target, basePath)
       : value;
   } catch {
     return value;
@@ -162,20 +209,20 @@ function rewriteUrl(value: string, base: URL): string {
 function escapeAttribute(value: string): string {
   return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
 }
-export function rewriteCss(css: string, base: URL): string {
+export function rewriteCss(css: string, base: URL, basePath = ""): string {
   return css
     .replace(
       /url\(\s*(['"]?)(.*?)\1\s*\)/gi,
       (_full, quote: string, value: string) =>
-        `url(${quote}${rewriteUrl(value, base)}${quote})`,
+        `url(${quote}${rewriteUrl(value, base, basePath)}${quote})`,
     )
     .replace(
       /@import\s+(['"])(.*?)\1/gi,
       (_full, quote: string, value: string) =>
-        `@import ${quote}${rewriteUrl(value, base)}${quote}`,
+        `@import ${quote}${rewriteUrl(value, base, basePath)}${quote}`,
     );
 }
-export function rewriteHtml(html: string, base: URL): string {
+export function rewriteHtml(html: string, base: URL, basePath = ""): string {
   let result = html.replace(
     /<meta\b[^>]*http-equiv\s*=\s*['"]?content-security-policy['"]?[^>]*>/gi,
     "",
@@ -183,7 +230,7 @@ export function rewriteHtml(html: string, base: URL): string {
   result = result.replace(
     /\b(src|href|action|poster|formaction)\s*=\s*(["'])(.*?)\2/gi,
     (_full, name: string, quote: string, value: string) =>
-      `${name}=${quote}${escapeAttribute(rewriteUrl(value, base))}${quote}`,
+      `${name}=${quote}${escapeAttribute(rewriteUrl(value, base, basePath))}${quote}`,
   );
   result = result.replace(
     /\bsrcset\s*=\s*(["'])(.*?)\1/gi,
@@ -193,7 +240,7 @@ export function rewriteHtml(html: string, base: URL): string {
         .map((part) => {
           const match = /^(\s*)(\S+)(.*)$/.exec(part);
           return match
-            ? `${match[1]}${escapeAttribute(rewriteUrl(match[2], base))}${match[3]}`
+            ? `${match[1]}${escapeAttribute(rewriteUrl(match[2], base, basePath))}${match[3]}`
             : part;
         })
         .join(",")}${quote}`,
@@ -201,11 +248,12 @@ export function rewriteHtml(html: string, base: URL): string {
   result = result.replace(
     /<style\b([^>]*)>([\s\S]*?)<\/style>/gi,
     (_full, attrs: string, css: string) =>
-      `<style${attrs}>${rewriteCss(css, base)}</style>`,
+      `<style${attrs}>${rewriteCss(css, base, basePath)}</style>`,
   );
-  const bootstrap = `<script>window.__tinybrowserTargetUrl=${JSON.stringify(base.href).replace(/</g, "\\u003c")};</script>`;
+  const bootstrap = `<script>window.__tinybrowserTargetUrl=${JSON.stringify(base.href).replace(/</g, "\\u003c")};window.__tinybrowserBasePath=${JSON.stringify(basePath)};</script>`;
   const injection =
-    bootstrap + `<script src="/tinybrowser-runtime.js" defer></script>`;
+    bootstrap +
+    `<script src="${basePath}/tinybrowser-runtime.js" defer></script>`;
   return /<\/head>/i.test(result)
     ? result.replace(/<\/head>/i, `${injection}</head>`)
     : injection + result;

@@ -23,15 +23,9 @@ importers:
       '@tailwindcss/vite':
         specifier: ^4.3.3
         version: 4.3.3(vite@7.3.6(@types/node@24.13.6)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15))
-      '@tinybrowser/controller':
+      '@tinyaifoundation/tiny-browser':
         specifier: workspace:*
-        version: link:../../packages/controller
-      '@tinybrowser/iframe-adapter':
-        specifier: workspace:*
-        version: link:../../packages/iframe-adapter
-      '@tinybrowser/protocol':
-        specifier: workspace:*
-        version: link:../../packages/protocol
+        version: link:../../packages/browser
       '@tinybrowser/runtime':
         specifier: workspace:*
         version: link:../../packages/runtime
@@ -85,27 +79,7 @@ importers:
         specifier: ^7.1.7
         version: 7.3.6(@types/node@24.13.6)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.15)
 
-  packages/controller:
-    dependencies:
-      '@tinybrowser/protocol':
-        specifier: workspace:*
-        version: link:../protocol
-    devDependencies:
-      typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
-
-  packages/iframe-adapter:
-    dependencies:
-      '@tinybrowser/controller':
-        specifier: workspace:*
-        version: link:../controller
-    devDependencies:
-      typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
-
-  packages/protocol:
+  packages/browser:
     devDependencies:
       typescript:
         specifier: ^5.9.3
@@ -113,9 +87,9 @@ importers:
 
   packages/runtime:
     dependencies:
-      '@tinybrowser/protocol':
+      '@tinyaifoundation/tiny-browser':
         specifier: workspace:*
-        version: link:../protocol
+        version: link:../browser
     devDependencies:
       typescript:
         specifier: ^5.9.3
@@ -126,6 +100,9 @@ importers:
       '@types/node':
         specifier: ^24.6.0
         version: 24.13.6
+      esbuild:
+        specifier: 0.25.12
+        version: 0.25.12
       tsx:
         specifier: ^4.20.5
         version: 4.23.15

@@ -2,7 +2,7 @@ import type {
   TinyCommand,
   TinyRuntimeMessage,
   TinyScrollOptions,
-} from "@tinybrowser/protocol";
+} from "@tinyaifoundation/tiny-browser";
 import { clickElement, pressKey, selectValue, typeInto } from "./actions";
 import { NodeRegistry } from "./nodes";
 import { createSnapshot } from "./tree";
@@ -31,7 +31,13 @@ function postToHost(message: TinyRuntimeMessage): void {
 
 function targetUrl(value: string): string {
   const resolved = new URL(value, document.baseURI);
-  const match = /^\/browse\/(https?)\/([^/]+)(\/.*)?$/.exec(resolved.pathname);
+  const basePath =
+    (window as Window & { __tinybrowserBasePath?: string })
+      .__tinybrowserBasePath ?? "";
+  const browse = `${basePath}/browse/`;
+  const match = resolved.pathname.startsWith(browse)
+    ? /^(https?)\/([^/]+)(\/.*)?$/.exec(resolved.pathname.slice(browse.length))
+    : null;
   if (match)
     return `${match[1]}://${match[2]}${match[3] ?? "/"}${resolved.search}${resolved.hash}`;
   return resolved.href;

@@ -5,7 +5,10 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 
 const playgroundRoot = dirname(new URL(import.meta.url).pathname);
-const runtimeEntry = join(playgroundRoot, "src/runtime-entry.ts");
+const runtimeEntry = join(
+  playgroundRoot,
+  "../../packages/runtime/src/entry.ts",
+);
 
 async function bundleRuntime(): Promise<string> {
   const result = await bundle({

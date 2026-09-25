@@ -10,9 +10,13 @@ import {
   Terminal,
   Type,
 } from "lucide-react";
-import { TinyBrowser, type TinyPage } from "@tinybrowser/controller";
-import { IframeBrowserAdapter } from "@tinybrowser/iframe-adapter";
-import type { TinyNode, TinySnapshot } from "@tinybrowser/protocol";
+import {
+  TinyBrowser,
+  IframeBrowserAdapter,
+  type TinyPage,
+  type TinyNode,
+  type TinySnapshot,
+} from "@tinyaifoundation/tiny-browser";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,6 +24,9 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import "./style.css";
 
+const relayBasePath =
+  (window as Window & { __tinybrowserRelayBasePath?: string })
+    .__tinybrowserRelayBasePath ?? "";
 const demoUrl = "https://demo.tinybrowser/";
 
 function TreeNode({
@@ -104,7 +111,9 @@ function App() {
     window.clearTimeout(changeTimer.current);
     page.current?.dispose();
     page.current = undefined;
-    const browser = new TinyBrowser(new IframeBrowserAdapter());
+    const browser = new TinyBrowser(
+      new IframeBrowserAdapter({ basePath: relayBasePath }),
+    );
     await browser.start();
     const next = await browser.newPage();
     page.current = next;
@@ -170,8 +179,8 @@ function App() {
           </h1>
           <p>
             Navigate a live page, inspect its semantic tree, and run precise
-            actions by node ID. Everything runs in your browser with a small
-            local gateway.
+            actions by node ID. Your browser renders and acts; a small relay
+            fetches the page.
           </p>
         </div>
         <div className="intro-stat">
@@ -375,7 +384,7 @@ function App() {
       </section>
       <footer>
         Open source by Tiny AI Foundation <span>·</span> First-party gateway and
-        runtime <span>·</span> Runs locally <Braces size={14} />
+        runtime <span>·</span> Runs in your browser <Braces size={14} />
       </footer>
     </main>
   );

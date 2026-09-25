@@ -21,3 +21,13 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test
       - run: docker build -t tiny-browser-relay .
+      - name: Smoke test relay image
+        run: |
+          docker run -d --name tiny-browser-smoke -e TINYBROWSER_PROXY_SECRET=ci-smoke-test-secret-0123456789abcdef -p 127.0.0.1:18080:8080 tiny-browser-relay
+          trap 'docker rm -f tiny-browser-smoke' EXIT
+          for attempt in 1 2 3 4 5; do
+            if curl -fsS http://127.0.0.1:18080/tinybrowser/health; then break; fi
+            sleep 1
+          done
+          test "$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:18080/tinybrowser/browse/https/demo.tinybrowser/)" = 401
+          docker image inspect tiny-browser-relay --format 'Image size in bytes: {{.Size}}'

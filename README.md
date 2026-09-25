@@ -1,12 +1,14 @@
 # Tiny Browser
 
-**A small, web-embedded browser for agents.** Tiny Browser renders a page inside your web app, turns its visible DOM into a compact semantic tree, and lets an agent act on stable node IDs. It uses the browser already on your machine. There is no Chromium download, VM, Playwright process, Scramjet service worker, or Wisp relay.
+![Concept artwork showing an embedded web page connected to an agent's semantic view over a blue-green gradient](docs/assets/tiny-browser-hero.png)
+
+**A small, web-embedded browser for agents.** Tiny Browser renders a page inside your web app, turns its visible content into a compact semantic tree, and lets an agent act on stable node IDs. It uses the browser already on your machine.
 
 The repository includes a local gateway, a browser-side controller and runtime, and a [shadcn/ui](https://ui.shadcn.com/) demo. It is free and open source under the MIT license.
 
 ## Quick start
 
-You need Node.js 22 or newer and pnpm 10.14 or newer. After the public repository is available:
+You need Node.js 22 or newer and pnpm 10.14 or newer:
 
 ```bash
 git clone https://github.com/tinyaifoundation/tiny-browser.git
@@ -77,7 +79,7 @@ The gateway removes upstream frame and content security restrictions so it can e
 
 ## Current compatibility limits
 
-Tiny Browser is a web-first browsing surface, not a full replacement for a desktop browser engine or a universal proxy. The gateway currently supports GET/HEAD page and asset requests. It rewrites common static HTML attributes and CSS URLs, but does not rewrite arbitrary JavaScript, dynamic `fetch`/XHR calls, WebSockets, service workers, media streams, or POST workflows. Sites that require these features, strict origin behavior, authentication, anti-bot challenges, or complex client-side routing may not work. The built-in demo and simple public pages are supported paths.
+The gateway currently supports GET/HEAD page and asset requests. It rewrites common static HTML attributes and CSS URLs. Dynamic `fetch`/XHR calls, WebSockets, service workers, media streams, and POST workflows are outside the current compatibility scope. Sites that require these features, strict origin behavior, authentication, anti-bot challenges, or complex client-side routing may not work. The built-in demo and simple public pages are supported paths.
 
 The semantic tree is intentionally smaller than the DOM. It includes visible text, landmarks, headings, controls, accessible names, state, and rectangles. It is not a complete accessibility tree. Synthetic key events may not reproduce every browser default action.
 

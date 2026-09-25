@@ -1,6 +1,6 @@
 {
-  "name": "@tinybrowser/runtime",
-  "private": true,
+  "name": "@tinybrowser/iframe-adapter",
+  "version": "0.1.0",
   "type": "module",
   "exports": "./src/index.ts",
   "scripts": {
@@ -8,7 +8,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@tinybrowser/protocol": "workspace:*"
+    "@tinybrowser/controller": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.9.3"

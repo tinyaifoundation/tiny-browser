@@ -1,15 +1,15 @@
 {
-  "name": "@tinybrowser/relay",
+  "name": "@tinybrowser/gateway",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "test": "node --test dist/gateway.test.js",
     "build": "tsc -p tsconfig.json",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
-  "dependencies": {
-    "@mercuryworkshop/wisp-js": "^0.4.1"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@types/node": "^24.6.0",
     "tsx": "^4.20.5",

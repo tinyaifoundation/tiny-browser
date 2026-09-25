@@ -33,7 +33,11 @@ export interface TinySnapshot {
 
 export type TinyScrollOptions =
   | { x?: number; y?: number; behavior?: ScrollBehavior }
-  | { nodeId: number; block?: ScrollLogicalPosition; inline?: ScrollLogicalPosition };
+  | {
+      nodeId: number;
+      block?: ScrollLogicalPosition;
+      inline?: ScrollLogicalPosition;
+    };
 
 export type TinyCommand =
   | { id: string; type: "snapshot" }

@@ -1,6 +1,10 @@
 export function isVisible(element: Element): boolean {
   const style = getComputedStyle(element);
-  if (style.display === "none" || style.visibility === "hidden" || Number(style.opacity) === 0) {
+  if (
+    style.display === "none" ||
+    style.visibility === "hidden" ||
+    Number(style.opacity) === 0
+  ) {
     return false;
   }
   const rect = element.getBoundingClientRect();
@@ -9,5 +13,10 @@ export function isVisible(element: Element): boolean {
 
 export function rectFor(element: Element) {
   const rect = element.getBoundingClientRect();
-  return { x: Math.round(rect.x), y: Math.round(rect.y), width: Math.round(rect.width), height: Math.round(rect.height) };
+  return {
+    x: Math.round(rect.x),
+    y: Math.round(rect.y),
+    width: Math.round(rect.width),
+    height: Math.round(rect.height),
+  };
 }
